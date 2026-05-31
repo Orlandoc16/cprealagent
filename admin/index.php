@@ -19,16 +19,16 @@ try {
 } catch (Exception $e) {}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $email = sanitize_email($_POST['email'] ?? '');
+    $login = sanitize(trim($_POST['login'] ?? ''));
     $password = $_POST['password'] ?? '';
     
-    if (!$email || !$password) {
-        $error = 'Introduce email y contraseña.';
+    if (!$login || !$password) {
+        $error = 'Introduce usuario/email y contraseña.';
     } elseif (check_login_rate_limit($db)) {
         $error = 'Demasiados intentos. Espera ' . ADMIN_LOCKOUT_MINUTES . ' minutos.';
     } else {
-        $stmt = $db->prepare("SELECT * FROM users WHERE email = ? LIMIT 1");
-        $stmt->execute([$email]);
+        $stmt = $db->prepare("SELECT * FROM users WHERE email = ? OR username = ? LIMIT 1");
+        $stmt->execute([$login, $login]);
         $user = $stmt->fetch();
         
         if ($user && password_verify($password, $user['password_hash'])) {
@@ -47,7 +47,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
         } else {
             register_login_attempt($db);
-            $error = 'Email o contraseña incorrectos.';
+            $error = 'Usuario o contraseña incorrectos.';
         }
     }
 }
@@ -84,10 +84,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <form method="POST" class="space-y-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                    <input type="email" name="email" required autofocus
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Usuario o Email</label>
+                    <input type="text" name="login" required autofocus
                            class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none"
-                           value="<?= e($_POST['email'] ?? '') ?>">
+                           value="<?= e($_POST['login'] ?? '') ?>">
                 </div>
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">Contraseña</label>
