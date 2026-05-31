@@ -1,0 +1,84 @@
+# ============================================
+# CP Real Agent — .htaccess
+# ============================================
+
+RewriteEngine On
+
+# Forzar HTTPS
+RewriteCond %{HTTPS} off
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# Forzar www en dominio principal
+RewriteCond %{HTTP_HOST} ^cprealagent\.com$ [NC]
+RewriteRule ^(.*)$ https://www.cprealagent.com/$1 [L,R=301]
+
+# Rutas de propiedades
+RewriteRule ^propiedad/([^/]+)/?$ propiedades/ver.php?slug=$1 [L,QSA]
+
+# Rutas dinámicas: /{tipo-operacion}/ o /{tipo-operacion}/{ciudad}/
+RewriteRule ^(alquiler|venta|traspaso|compartir)/?$ $1/index.php [L,QSA]
+RewriteRule ^(alquiler|venta|traspaso|compartir)/([^/]+)/?$ $1/index.php?ciudad=$2 [L,QSA]
+
+# Landing pages
+RewriteRule ^lp/([^/]+)/?$ landing/index.php?slug=$1 [L,QSA]
+
+# Sitemap
+RewriteRule ^sitemap\.xml$ sitemap.php [L]
+
+# Páginas estáticas
+RewriteRule ^contacto/?$ contacto.php [L,QSA]
+RewriteRule ^sobre-nosotros/?$ sobre-nosotros.php [L,QSA]
+RewriteRule ^vender/?$ vender.php [L,QSA]
+RewriteRule ^comprar/?$ comprar.php [L,QSA]
+RewriteRule ^propiedades/?$ propiedades/index.php [L,QSA]
+
+# ---- SEGURIDAD ----
+
+# Bloquear acceso a archivos sensibles
+<FilesMatch "\.(env|sql|log|md|json|config\.php)$">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Bloquear PHP en uploads
+<DirectoryMatch "uploads/">
+    <FilesMatch "\.php$">
+        Order allow,deny
+        Deny from all
+    </FilesMatch>
+</DirectoryMatch>
+
+# ---- PERFORMANCE ----
+
+# Cache navegador
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType image/webp "access plus 1 year"
+    ExpiresByType image/jpeg "access plus 1 year"
+    ExpiresByType image/png "access plus 1 year"
+    ExpiresByType image/svg+xml "access plus 1 year"
+    ExpiresByType text/css "access plus 1 month"
+    ExpiresByType application/javascript "access plus 1 month"
+    ExpiresByType font/woff2 "access plus 1 year"
+</IfModule>
+
+# Headers de seguridad
+<IfModule mod_headers.c>
+    Header set X-Content-Type-Options "nosniff"
+    Header set X-Frame-Options "SAMEORIGIN"
+    Header set X-XSS-Protection "1; mode=block"
+    Header set Referrer-Policy "strict-origin-when-cross-origin"
+    Header set Permissions-Policy "camera=(), microphone=(), geolocation=(self)"
+</IfModule>
+
+# Gzip
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/css application/javascript application/json image/svg+xml
+</IfModule>
+
+# PHP sessions seguras
+<IfModule mod_php.c>
+    php_value session.cookie_httponly 1
+    php_value session.cookie_secure 1
+    php_value session.use_strict_mode 1
+</IfModule>

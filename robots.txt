@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+Disallow: /admin/
+Disallow: /uploads/
+Disallow: /includes/
+Disallow: /config/
+
+Sitemap: https://www.cprealagent.com/sitemap.xml
